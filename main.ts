@@ -1,4 +1,4 @@
-import { serve, validateRequest } from "https://deno.land/x/sift/mod.ts";
+import { serve } from "https://deno.land/x/sift/mod.ts";
 
 const IFTTT_EVENT = Deno.env.get("IFTTT_EVENT");
 const IFTTT_SECRET = Deno.env.get("IFTTT_SECRET");
@@ -24,23 +24,17 @@ serve({
   },
 });
 
-const handle = async (request: Request) =>
-  validateRequest(request, {
-    POST: {},
-  })
-    .then((error) => {
-      if (error) {
-        log(
-          undefined,
-          LEVEL.WAR,
-          "IFTTT logger",
-          (error.error?.message ?? "Validation failure") +
-            ` (${getRequestInfo(request)})`,
-        );
-        return getErrorResponse();
-      }
-      return request.json();
-    })
+const handle = async (request: Request) => {
+  if (request.method !== "POST") {
+    log(
+      undefined,
+      LEVEL.WAR,
+      "IFTTT logger",
+      `Method not allowed (${getRequestInfo(request)})`,
+    );
+    return getErrorResponse();
+  }
+  return request.json()
     .then(({ timestamp, level, source, message }) => {
       const nLevel = (level ?? "").toUpperCase();
       const l = Object.values(LEVEL).includes(nLevel)
@@ -66,6 +60,7 @@ const handle = async (request: Request) =>
       );
       return getErrorResponse();
     });
+};
 
 const log = async (
   timestamp: number | undefined,
@@ -109,7 +104,7 @@ const log = async (
         value3,
       }),
     },
-  );
+  ).catch(console.error);
 };
 
 const getErrorResponse = () =>
