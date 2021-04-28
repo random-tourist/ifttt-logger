@@ -14,7 +14,7 @@ enum LEVEL {
 serve({
   "/": (request: Request) => handle(request),
   404: (request: Request) => {
-    log(undefined, LEVEL.WARN, "IFTTT logger", `Bad request: ${request.url}`);
+    log(undefined, LEVEL.WARN, "IFTTT logger", `Bad request: ${getRequestInfo(request)}`);
     return getErrorResponse();
   },
 });
@@ -29,7 +29,7 @@ const handle = async (request: Request) =>
           undefined,
           LEVEL.WARN,
           "IFTTT logger",
-          (error.error?.message ?? "Validation failure"),
+          (error.error?.message ?? "Validation failure") + ` (${getRequestInfo(request)})`,
         );
         return getErrorResponse();
       }
@@ -51,7 +51,7 @@ const handle = async (request: Request) =>
         undefined,
         LEVEL.ERROR,
         "IFTTT logger",
-        JSON.stringify(error) || `Unkown error (${request.url})`,
+        (error.toString() || `Unkown error`) + ` (${getRequestInfo(request)})`,
       );
       return getErrorResponse();
     });
@@ -122,3 +122,5 @@ const getResponseHearders = (): Headers =>
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Methods": "POST",
   });
+
+  const getRequestInfo = (request: Request): string => `${request.method} ${request.url}`
