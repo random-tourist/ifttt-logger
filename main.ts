@@ -4,11 +4,11 @@ const IFTTT_EVENT = Deno.env.get("IFTTT_EVENT");
 const IFTTT_SECRET = Deno.env.get("IFTTT_SECRET");
 
 enum LEVEL {
-  DEB,
-  INF,
-  WAR,
-  ERR,
-  UNK,
+  DEB = "DEB",
+  INF = "INF",
+  WAR = "WAR",
+  ERR = "ERR",
+  UNK = "UNK",
 }
 
 serve({
@@ -42,11 +42,16 @@ const handle = async (request: Request) =>
       return request.json();
     })
     .then(({ timestamp, level, source, message }) => {
-      const nLevel = level.toUpperCase();
-      const l = Object.keys(LEVEL).includes(nLevel)
+      const nLevel = (level ?? "").toUpperCase();
+      const l = Object.values(LEVEL).includes(nLevel)
         ? nLevel as LEVEL
         : LEVEL.UNK;
-      log(parseInt(timestamp, 10), l, source.toString(), message.toString());
+      log(
+        parseInt(timestamp, 10),
+        l,
+        (source ?? "Unknown source").toString(),
+        (message ?? "???").toString(),
+      );
       return new Response(undefined, {
         status: 204,
         headers: getResponseHearders(),
