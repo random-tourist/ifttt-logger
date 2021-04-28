@@ -4,17 +4,22 @@ const IFTTT_EVENT = Deno.env.get("IFTTT_EVENT");
 const IFTTT_SECRET = Deno.env.get("IFTTT_SECRET");
 
 enum LEVEL {
-  DEBUG,
-  INFO,
+  DEB,
+  INF,
   WARN,
-  ERROR,
-  UNKNOWN,
+  ERR,
+  UNK,
 }
 
 serve({
   "/": (request: Request) => handle(request),
   404: (request: Request) => {
-    log(undefined, LEVEL.WARN, "IFTTT logger", `Bad request: ${getRequestInfo(request)}`);
+    log(
+      undefined,
+      LEVEL.WARN,
+      "IFTTT logger",
+      `Bad request: ${getRequestInfo(request)}`,
+    );
     return getErrorResponse();
   },
 });
@@ -29,7 +34,8 @@ const handle = async (request: Request) =>
           undefined,
           LEVEL.WARN,
           "IFTTT logger",
-          (error.error?.message ?? "Validation failure") + ` (${getRequestInfo(request)})`,
+          (error.error?.message ?? "Validation failure") +
+            ` (${getRequestInfo(request)})`,
         );
         return getErrorResponse();
       }
@@ -39,7 +45,7 @@ const handle = async (request: Request) =>
       const nLevel = level.toUpperCase();
       const l = Object.keys(LEVEL).includes(nLevel)
         ? nLevel as LEVEL
-        : LEVEL.UNKNOWN;
+        : LEVEL.UNK;
       log(parseInt(timestamp, 10), l, source.toString(), message.toString());
       return new Response(undefined, {
         status: 204,
@@ -49,7 +55,7 @@ const handle = async (request: Request) =>
     .catch((error) => {
       log(
         undefined,
-        LEVEL.ERROR,
+        LEVEL.ERR,
         "IFTTT logger",
         (error.toString() || `Unkown error`) + ` (${getRequestInfo(request)})`,
       );
@@ -68,16 +74,16 @@ const log = async (
   }
   let logmoji;
   switch (level) {
-    case LEVEL.DEBUG:
+    case LEVEL.DEB:
       logmoji = "🔍";
       break;
-    case LEVEL.INFO:
+    case LEVEL.INF:
       logmoji = "💡";
       break;
     case LEVEL.WARN:
       logmoji = "⚡";
       break;
-    case LEVEL.ERROR:
+    case LEVEL.ERR:
       logmoji = "🌋";
       break;
     default:
@@ -87,15 +93,18 @@ const log = async (
   const value1 = `⏳ ${toShortString(date)}`;
   const value2 = `${logmoji}  ${source}`;
   const value3 = message;
-  return fetch(`https://maker.ifttt.com/trigger/${IFTTT_EVENT}/with/key/${IFTTT_SECRET}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      value1,
-      value2,
-      value3,
-    }),
-  });
+  return fetch(
+    `https://maker.ifttt.com/trigger/${IFTTT_EVENT}/with/key/${IFTTT_SECRET}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        value1,
+        value2,
+        value3,
+      }),
+    },
+  );
 };
 
 const getErrorResponse = () =>
@@ -123,4 +132,5 @@ const getResponseHearders = (): Headers =>
     "Access-Control-Allow-Methods": "POST",
   });
 
-  const getRequestInfo = (request: Request): string => `${request.method} ${request.url}`
+const getRequestInfo = (request: Request): string =>
+  `${request.method} ${request.url}`;
