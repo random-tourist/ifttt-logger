@@ -1,6 +1,6 @@
 import { serve, validateRequest } from "https://deno.land/x/sift/mod.ts";
 
-const IFTTT_SECRET = Deno.env.get('IFTTT_SECRET')
+const IFTTT_SECRET = Deno.env.get("IFTTT_SECRET");
 
 enum LEVEL {
   DEBUG,
@@ -13,9 +13,9 @@ enum LEVEL {
 serve({
   "/": (request: Request) => handle(request),
   404: (request: Request) => {
-    log(NaN, LEVEL.WARN, 'IFTTT logger', `Bad request: ${request.url}`);
+    log(undefined, LEVEL.WARN, "IFTTT logger", `Bad request: ${request.url}`);
     return getErrorResponse();
-  }
+  },
 });
 
 const handle = async (request: Request) =>
@@ -24,7 +24,12 @@ const handle = async (request: Request) =>
   })
     .then((error) => {
       if (error) {
-        log(NaN, LEVEL.WARN, 'IFTTT logger', (error.error?.message ?? 'Validation failure'))
+        log(
+          undefined,
+          LEVEL.WARN,
+          "IFTTT logger",
+          (error.error?.message ?? "Validation failure"),
+        );
         return getErrorResponse();
       }
       return request.json();
@@ -40,18 +45,26 @@ const handle = async (request: Request) =>
         headers: getResponseHearders(),
       });
     })
-    .catch(error => {
-      log(NaN, LEVEL.ERROR, 'IFTTT logger', JSON.stringify(error) || `Unkown error (${request.url})`);
+    .catch((error) => {
+      log(
+        undefined,
+        LEVEL.ERROR,
+        "IFTTT logger",
+        JSON.stringify(error) || `Unkown error (${request.url})`,
+      );
       return getErrorResponse();
     });
 
 const log = async (
-  timestamp: number,
+  timestamp: number | undefined,
   level: LEVEL,
   source: string,
   message: string,
 ) => {
-  const date = timestamp === NaN ? new Date() : new Date(timestamp);
+  let date = new Date();
+  if (timestamp) {
+    date = new Date(timestamp);
+  }
   let logmoji;
   switch (level) {
     case LEVEL.DEBUG:
@@ -74,20 +87,21 @@ const log = async (
   const Value2 = `${logmoji}  ${source}`;
   const Value3 = message;
   return fetch(`https://maker.ifttt.com/use/${IFTTT_SECRET}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       Value1,
       Value2,
-      Value3
-    })
-  })
+      Value3,
+    }),
+  });
 };
 
-const getErrorResponse = () => new Response(undefined, {
-  status: 418,
-  headers: getResponseHearders(),
-});
+const getErrorResponse = () =>
+  new Response(undefined, {
+    status: 418,
+    headers: getResponseHearders(),
+  });
 
 const toShortString = (date: Date): string =>
   new Intl.DateTimeFormat("fr", {
