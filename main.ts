@@ -1,5 +1,6 @@
 import { serve, validateRequest } from "https://deno.land/x/sift/mod.ts";
 
+const IFTTT_EVENT = Deno.env.get("IFTTT_EVENT");
 const IFTTT_SECRET = Deno.env.get("IFTTT_SECRET");
 
 enum LEVEL {
@@ -83,16 +84,16 @@ const log = async (
       logmoji = "❔";
       break;
   }
-  const Value1 = `⏳ ${toShortString(date)}`;
-  const Value2 = `${logmoji}  ${source}`;
-  const Value3 = message;
-  return fetch(`https://maker.ifttt.com/use/${IFTTT_SECRET}`, {
+  const value1 = `⏳ ${toShortString(date)}`;
+  const value2 = `${logmoji}  ${source}`;
+  const value3 = message;
+  return fetch(`https://maker.ifttt.com/trigger/${IFTTT_EVENT}/with/key/${IFTTT_SECRET}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      Value1,
-      Value2,
-      Value3,
+      value1,
+      value2,
+      value3,
     }),
   });
 };
