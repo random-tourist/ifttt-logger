@@ -6,7 +6,7 @@ const IFTTT_SECRET = Deno.env.get("IFTTT_SECRET");
 enum LEVEL {
   DEB,
   INF,
-  WARN,
+  WAR,
   ERR,
   UNK,
 }
@@ -16,7 +16,7 @@ serve({
   404: (request: Request) => {
     log(
       undefined,
-      LEVEL.WARN,
+      LEVEL.WAR,
       "IFTTT logger",
       `Bad request: ${getRequestInfo(request)}`,
     );
@@ -32,7 +32,7 @@ const handle = async (request: Request) =>
       if (error) {
         log(
           undefined,
-          LEVEL.WARN,
+          LEVEL.WAR,
           "IFTTT logger",
           (error.error?.message ?? "Validation failure") +
             ` (${getRequestInfo(request)})`,
@@ -80,7 +80,7 @@ const log = async (
     case LEVEL.INF:
       logmoji = "💡";
       break;
-    case LEVEL.WARN:
+    case LEVEL.WAR:
       logmoji = "⚡";
       break;
     case LEVEL.ERR:
